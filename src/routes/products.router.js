@@ -1,102 +1,64 @@
-const express = require("express");
-const router = express.Router();
+const express = require("express")
+const router = express.Router()
+const ProductManager = require("../services/ProductManager.js")
+const newProductManager = new ProductManager("./src/data/products.json")
 
-const ProductManager = require("../controllers/product-manager.js");
-const productManager = new ProductManager("./src/models/productos.json");
-
-//1) Listar todos los productos. 
 router.get("/", async (req, res) => {
-    try {
-        const limit = req.query.limit;
-        const productos = await productManager.getProducts();
-        if (limit) {
-            res.json(productos.slice(0, limit));
-        } else {
-            res.json(productos);
-        }
-    } catch (error) {
-        console.error("Error al obtener productos", error);
-        res.status(500).json({
-            error: "Error interno del servidor"
-        });
+    const products = await newProductManager.getProducts()
+    let limit = parseInt(req.query.limit)
+    if (limit) {
+        const limitedProducts = products.slice(0, limit);
+        res.send(limitedProducts)
+        return
     }
-});
-
-//2) Traer solo un producto por id: 
+    res.send(products)
+})
 
 router.get("/:pid", async (req, res) => {
-    const id = req.params.pid;
-
+    let pid = req.params.pid
     try {
-        const producto = await productManager.getProductById(parseInt(id));
-        if (!producto) {
-            return res.json({
-                error: "Producto no encontrado"
-            });
-        }
-
-        res.json(producto);
+        const product = await newProductManager.getProductById(pid)
+        res.send(product)
     } catch (error) {
-        console.error("Error al obtener producto", error);
-        res.status(500).json({
-            error: "Error interno del servidor"
-        });
+        res.status(404).json({ error: `${error.message}` })
     }
-});
-
-
-//3) Agregar nuevo producto: 
+})
 
 router.post("/", async (req, res) => {
-    const nuevoProducto = req.body;
-
+    const newProduct = req.body
     try {
-        await productManager.addProduct(nuevoProducto);
-        res.status(201).json({
-            message: "Producto agregado exitosamente"
-        });
+        await newProductManager.addProduct(newProduct)
+        res.send({ status: "success", message: "Correctly aggregated product" })
     } catch (error) {
-        console.error("Error al agregar producto", error);
-        res.status(500).json({
-            error: "Error interno del servidor"
-        });
+        if (error.message === "Product already exists") {
+            res.status(409).json({ error: `${error.message}` })
+        } else if (error.message === "Product missing fields") {
+            res.status(409).json({ error: `${error.message}` })
+        } else {
+            res.status(500).send({ status: "error", message: "Internal Server Error" })
+        }
     }
-});
+})
 
-//4) Actualizar por ID
 router.put("/:pid", async (req, res) => {
-    const id = req.params.pid;
-    const productoActualizado = req.body;
-
+    let pid = req.params.pid
+    const updatedProduct = req.body
     try {
-        await productManager.updateProduct(parseInt(id), productoActualizado);
-        res.json({
-            message: "Producto actualizado exitosamente"
-        });
+        await newProductManager.updateProduct(pid, updatedProduct)
+        res.send({ status: "success", message: "Correctly updated product" })
     } catch (error) {
-        console.error("Error al actualizar producto", error);
-        res.status(500).json({
-            error: "Error interno del servidor"
-        });
+        res.status(409).json({ error: `${error.message}` })
     }
-});
-
-//5) Eliminar producto: 
+})
 
 router.delete("/:pid", async (req, res) => {
-    const id = req.params.pid;
-
+    let pid = req.params.pid
     try {
-        await productManager.deleteProduct(parseInt(id));
-        res.json({
-            message: "Producto eliminado exitosamente"
-        });
+        await newProductManager.deleteProduct(pid)
+        res.send({ status: "success", message: "Correctly deleted product" })
     } catch (error) {
-        console.error("Error al eliminar producto", error);
-        res.status(500).json({
-            error: "Error interno del servidor"
-        });
+        res.status(409).json({ error: `${error.message}` })
     }
-});
+})
 
-module.exports = router;
+module.exports = { newProductManager, router }

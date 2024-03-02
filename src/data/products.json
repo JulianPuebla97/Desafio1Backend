@@ -138,5 +138,20 @@
       "./media/products/gorra-nike-thumb1.jpg",
       "./media/products/gorra-nike-thumb2.jpg"
     ]
+  },
+  {
+    "title": "Camiseta deportiva",
+    "description": "Camiseta de algodón para entrenamiento.",
+    "price": 35,
+    "code": "P020",
+    "stock": 50,
+    "category": "Ropa deportiva",
+    "status": true,
+    "id": 11,
+    "img": "./media/products/camiseta-deportiva.jpg",
+    "thumbnails": [
+      "./media/thumbnails/camiseta-deportiva-thumbnail1.jpg",
+      "./media/thumbnails/camiseta-deportiva-thumbnail2.jpg"
+    ]
   }
 ]
